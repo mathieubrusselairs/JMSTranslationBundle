@@ -20,6 +20,8 @@ namespace JMS\TranslationBundle\DependencyInjection\Compiler;
 
 use JMS\TranslationBundle\Exception\RuntimeException;
 use Symfony\Component\DependencyInjection\DefinitionDecorator;
+use Symfony\Component\DependencyInjection\ChildDefinition;
+
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
@@ -39,7 +41,12 @@ class MountDumpersPass implements CompilerPassInterface
                 throw new RuntimeException(sprintf('The "alias" attribute must be set for tag "translation.dumper" for service "%s".', $id));
             }
 
-            $def = new DefinitionDecorator('jms_translation.dumper.symfony_adapter');
+            if (class_exists('Symfony\Component\DependencyInjection\ChildDefinition')) {
+                $def = new ChildDefinition('jms_translation.dumper.symfony_adapter');
+            } else {
+                $def = new DefinitionDecorator('jms_translation.dumper.symfony_adapter');
+            }
+
             $def->addArgument(new Reference($id))->addArgument($attr[0]['alias']);
             $container->setDefinition($id = 'jms_translation.dumper.wrapped_symfony_dumper.'.($i++), $def);
 
